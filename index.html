@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="card">
+        <h1>Weather Dashboard</h1>
+
+        <div class="search-bar">
+            
+            <input type="text" id="city" placeholder="Enter city name">
+            <button onclick="fetchWeather()"><img src="images/search.png" alt="Search"></button>            
+        </div>
+
+        <div class="image-container">
+            <img src="images/sun.png" alt="Below Image">
+        </div>
+
+        <div id="dashboard">
+            <!-- Display processed data here -->
+        </div>
+    </div>
+
+    <script>
+        const worker = new Worker('worker.js');
+
+        worker.onmessage = function (event) {
+            document.getElementById('dashboard').innerHTML = event.data;
+        };
+
+        function fetchWeather() {
+            const city = document.getElementById('city').value;
+
+            if (!city) {
+                alert('Please enter a city name');
+                return;
+            }
+
+            const apiKey = 'bea64792551047ca67bb92297d8c3846'; // Replace with your API key
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`, true);
+
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    const data = JSON.parse(xhr.responseText);
+                    worker.postMessage(data);
+                } else {
+                    console.error('Error fetching data:', xhr.statusText);
+                }
+            };
+
+            xhr.onerror = function () {
+                console.error('Network error occurred');
+            };
+
+            xhr.send();
+        }
+    </script>
+</body>
+</html>
+
